@@ -27,3 +27,19 @@ Observability workloads therefore target worker nodes using:
     node-role.kubernetes.io/control-plane: DoesNotExist
 
 The initial deployment uses conservative CPU and memory requests and limits.
+
+## Final lab state
+
+The observability layer is reconciled by Flux and runs exclusively on the worker node.
+
+Implemented components:
+
+- Prometheus with Kubernetes node discovery
+- Grafana with provisioned Prometheus datasource
+- Provisioned platform overview dashboard
+- Worker-only scheduling
+- Conservative CPU and memory limits
+- Ephemeral storage by design
+- Runtime-only Grafana admin secret
+
+The stack is intentionally lightweight and non-HA because the lab currently has a single worker node and no persistent StorageClass.

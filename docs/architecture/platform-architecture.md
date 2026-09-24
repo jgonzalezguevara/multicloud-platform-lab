@@ -248,3 +248,19 @@ The current lab follows these principles:
 8. Provider implementations should remain comparable.
 9. Validation should prove behavior rather than only configuration.
 10. Portfolio documentation should distinguish implemented capabilities from planned work.
+
+
+## Observability Layer
+
+The platform includes a lightweight GitOps-managed observability layer.
+
+Flow:
+
+    Flux
+      -> observability Kustomization
+      -> Prometheus
+      -> Grafana
+
+Prometheus and Grafana are scheduled only on worker nodes so that the small RKE2 control-plane nodes remain focused on etcd and control-plane services.
+
+The current implementation intentionally uses ephemeral storage. Persistent observability storage is deferred until a dedicated StorageClass is introduced.

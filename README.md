@@ -259,6 +259,16 @@ Current and upcoming areas include:
 - platform self-service capabilities
 - additional architecture and troubleshooting documentation
 
+## Observability
+
+The lab includes a lightweight observability layer reconciled by Flux.
+
+- Prometheus collects platform metrics.
+- Grafana is provisioned with Prometheus as its default datasource.
+- A platform overview dashboard is deployed declaratively.
+- Observability workloads are constrained to worker nodes to protect the RKE2 control plane.
+- The current lab intentionally uses ephemeral storage because no persistent StorageClass has been introduced yet.
+
 ## Project status
 
 Active development.
