@@ -47,6 +47,8 @@ jobs:
 
       - name: Initialize and validate Proxmox OpenTofu
         shell: bash
+        env:
+          TF_VAR_ssh_public_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEciValidationOnlyDummyKey0000000000000000000000000000 ci@github"
         run: |
           tofu -chdir=platforms/proxmox init -backend=false -input=false
           tofu -chdir=platforms/proxmox validate

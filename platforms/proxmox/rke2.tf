@@ -49,7 +49,7 @@ module "rke2_nodes" {
   datastore_id   = "local-lvm"
   bridge         = "vmbr1"
   username       = "automation"
-  ssh_public_key = trimspace(file("/home/automation/.ssh/id_ed25519_multicloud.pub"))
+  ssh_public_key = var.ssh_public_key
 
   ipv4_address = each.value.ipv4_address
   ipv4_gateway = "10.20.0.1"

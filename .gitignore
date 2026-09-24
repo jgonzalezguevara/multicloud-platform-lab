@@ -49,3 +49,4 @@ automation/ansible/inventories/*/group_vars/vault.yml
 
 # Generated runtime data
 runtime/
+platforms/proxmox/local.auto.tfvars
