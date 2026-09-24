@@ -1,0 +1,35 @@
+---
+environment_name: "multicloud-lab"
+cluster_name: "multicloud-rke2"
+
+deployment_topology: "ha"
+
+# Perfil LAB, no dimensionamiento enterprise/producción.
+minimum_vcpus: 2
+minimum_memory_mb: 2900
+
+expected_rke2_servers: 3
+expected_rke2_agents: 1
+expected_cluster_nodes: 4
+
+# Endpoint bootstrap inicial.
+# HA del endpoint se incorporará posteriormente.
+rke2_api_hostname: "10.20.0.11"
+rke2_endpoint_ip: "10.20.0.11"
+load_balancer_ip: "10.20.0.11"
+
+# Rancher se incorporará en una fase posterior.
+rancher_hostname: "10.20.0.11"
+
+rke2_cluster_cidr: "10.42.0.0/16"
+rke2_service_cidr: "10.43.0.0/16"
+rke2_cluster_dns: "10.43.0.10"
+
+rke2_cni: "canal"
+
+rke2_version: "v1.36.4+rke2r1"
+
+rancher_version: "2.14.3"
+cert_manager_version: "v1.18.2"
+rancher_replicas: 3
+rancher_tls_source: "rancher"

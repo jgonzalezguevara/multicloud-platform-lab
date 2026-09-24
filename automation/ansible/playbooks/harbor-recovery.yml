@@ -1,0 +1,51 @@
+---
+- name: Configure Harbor boot recovery
+  hosts: harbor
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Verify Harbor installation
+      ansible.builtin.stat:
+        path: /opt/harbor/docker-compose.yml
+      register: harbor_compose
+
+    - name: Require Harbor installation
+      ansible.builtin.assert:
+        that:
+          - harbor_compose.stat.exists
+        fail_msg: "Harbor docker-compose.yml not found"
+
+    - name: Install Harbor recovery systemd unit
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/harbor-recovery.service
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          [Unit]
+          Description=Harbor recovery after Docker startup
+          Requires=docker.service
+          After=docker.service network-online.target
+          Wants=network-online.target
+
+          [Service]
+          Type=oneshot
+          WorkingDirectory=/opt/harbor
+          ExecStartPre=/bin/sh -c 'i=0; while ! nc -z 127.0.0.1 1514; do i=$((i+1)); [ "$i" -ge 60 ] && exit 1; sleep 1; done'
+          ExecStart=/usr/bin/docker compose up -d
+          RemainAfterExit=yes
+
+          [Install]
+          WantedBy=multi-user.target
+      register: harbor_recovery_unit
+
+    - name: Reload systemd when unit changes
+      ansible.builtin.systemd:
+        daemon_reload: true
+      when: harbor_recovery_unit.changed
+
+    - name: Enable Harbor recovery
+      ansible.builtin.systemd:
+        name: harbor-recovery.service
+        enabled: true

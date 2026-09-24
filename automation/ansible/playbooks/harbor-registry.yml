@@ -1,0 +1,62 @@
+---
+- name: Configure Harbor private registry for RKE2
+  hosts: rke2_cluster
+  become: true
+  gather_facts: false
+  serial: 1
+
+  vars_files:
+    - "{{ lookup('env', 'HOME') }}/.config/multicloud-platform-lab/secrets/harbor-vault.yml"
+
+  tasks:
+    - name: Ensure RKE2 configuration directory exists
+      ansible.builtin.file:
+        path: /etc/rancher/rke2
+        state: directory
+        owner: root
+        group: root
+        mode: "0700"
+
+    - name: Verify Harbor CA exists
+      ansible.builtin.stat:
+        path: /usr/local/share/ca-certificates/multicloud-lab-ca.crt
+      register: harbor_ca
+
+    - name: Require Harbor CA
+      ansible.builtin.assert:
+        that:
+          - harbor_ca.stat.exists
+          - harbor_ca.stat.isreg
+        fail_msg: "Harbor CA is missing"
+
+    - name: Install RKE2 private registry configuration
+      ansible.builtin.template:
+        src: ../templates/registries.yaml.j2
+        dest: /etc/rancher/rke2/registries.yaml
+        owner: root
+        group: root
+        mode: "0600"
+      register: harbor_registry_config
+      no_log: true
+
+    - name: Select RKE2 systemd service
+      ansible.builtin.set_fact:
+        rke2_systemd_service: >-
+          {{ 'rke2-server' if inventory_hostname in groups['rke2_servers']
+             else 'rke2-agent' }}
+
+    - name: Restart RKE2 when registry configuration changes
+      ansible.builtin.systemd:
+        name: "{{ rke2_systemd_service }}"
+        state: restarted
+      when: harbor_registry_config.changed
+
+    - name: Wait for RKE2 service after registry change
+      ansible.builtin.command:
+        cmd: "systemctl is-active {{ rke2_systemd_service }}"
+      register: rke2_service_state
+      changed_when: false
+      retries: 30
+      delay: 2
+      until: rke2_service_state.stdout == "active"
+      when: harbor_registry_config.changed

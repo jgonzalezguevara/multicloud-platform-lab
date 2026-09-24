@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Multicloud Platform Console</title>
+
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg:#0b1017;--panel:#111923;--panel2:#16212d;--line:#273545;
+  --text:#e8edf3;--muted:#8fa1b3;--accent:#4da3ff;--ok:#35c98f;
+  --warn:#f2b84b;--bad:#ef6464
+}
+body{margin:0;background:var(--bg);color:var(--text);font:14px Arial,sans-serif}
+button,input,select{font:inherit}
+.topbar{
+  height:58px;background:#0d141d;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;padding:0 22px;gap:28px;position:sticky;top:0;z-index:10
+}
+.brand{font-size:18px;font-weight:700}
+.brand span{color:var(--accent)}
+.topnav{display:flex;height:100%}
+.topnav button{
+  border:0;background:none;color:var(--muted);padding:0 17px;cursor:pointer;
+  border-bottom:3px solid transparent
+}
+.topnav button:hover,.topnav button.active{color:white;border-bottom-color:var(--accent)}
+.status{margin-left:auto;color:var(--ok);font-size:12px;font-weight:bold}
+
+.layout{display:grid;grid-template-columns:230px 1fr;min-height:calc(100vh - 58px)}
+.sidebar{background:#0d141d;border-right:1px solid var(--line);padding:18px 10px}
+.side-title{color:#617589;font-size:11px;font-weight:bold;padding:10px 12px;text-transform:uppercase}
+.side-item{
+  padding:10px 12px;border-radius:5px;color:#bac6d2;cursor:pointer;margin:2px 0
+}
+.side-item:hover,.side-item.active{background:#182535;color:white}
+.side-item small{display:block;color:#6e8194;margin-top:3px}
+
+main{padding:26px 30px;min-width:0}
+.breadcrumb{color:var(--muted);font-size:12px;margin-bottom:12px}
+h1{font-size:27px;margin:0 0 5px}
+.subtitle{color:var(--muted);margin-bottom:24px}
+.toolbar{display:flex;gap:8px;margin-bottom:20px}
+.btn{
+  border:1px solid #34475a;background:#172433;color:white;border-radius:5px;
+  padding:9px 14px;cursor:pointer
+}
+.btn:hover{background:#203246}
+.btn.primary{background:#1769aa;border-color:#2381ce}
+.btn.danger{color:#ff8585}
+
+.cards{display:grid;grid-template-columns:repeat(4,minmax(180px,1fr));gap:14px;margin-bottom:25px}
+.card{
+  background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:18px
+}
+.card .value{font-size:27px;font-weight:bold;margin:10px 0 5px}
+.muted{color:var(--muted)}
+.ok{color:var(--ok)}
+.warn{color:var(--warn)}
+.bad{color:var(--bad)}
+
+.section{
+  background:var(--panel);border:1px solid var(--line);border-radius:7px;
+  margin-bottom:18px;overflow:hidden
+}
+.section-head{
+  padding:15px 18px;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;justify-content:space-between;font-weight:bold
+}
+.section-body{padding:18px}
+
+table{width:100%;border-collapse:collapse}
+th{text-align:left;color:#91a4b7;font-size:12px;font-weight:600;background:#0e1720}
+th,td{padding:12px;border-bottom:1px solid #24313e}
+tr:last-child td{border-bottom:0}
+
+.cloud-hero{
+  padding:20px;border-radius:7px;margin-bottom:20px;border:1px solid var(--line);
+  background:linear-gradient(100deg,#121c27,#172534)
+}
+.cloud-hero.aws{border-left:4px solid #ff9900}
+.cloud-hero.azure{border-left:4px solid #28a8e9}
+.cloud-hero.gcp{border-left:4px solid #4285f4}
+.cloud-hero.oci{border-left:4px solid #f05023}
+
+.services{
+  display:grid;grid-template-columns:repeat(3,minmax(220px,1fr));gap:12px
+}
+.service{
+  background:#111b26;border:1px solid var(--line);padding:16px;border-radius:6px;cursor:pointer
+}
+.service:hover{border-color:#4d718f;background:#162433}
+.service strong{display:block;margin-bottom:7px}
+.service span{color:var(--muted);font-size:12px}
+
+.builder{display:grid;grid-template-columns:1fr 320px;gap:18px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+label{display:block;color:#aebdcb;font-size:12px;margin-bottom:6px}
+input,select{
+  width:100%;background:#0c141d;border:1px solid #334657;color:white;
+  border-radius:4px;padding:10px
+}
+.summary{background:#0d151e;border:1px solid var(--line);border-radius:6px;padding:18px}
+.summary h3{margin-top:0}
+.code{
+  background:#080d12;border:1px solid #263442;padding:15px;border-radius:5px;
+  font:12px Consolas,monospace;white-space:pre-wrap;color:#b9d2e8
+}
+.hidden{display:none}
+
+@media(max-width:1000px){
+ .layout{grid-template-columns:190px 1fr}
+ .cards,.services{grid-template-columns:repeat(2,1fr)}
+ .builder{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+
+<header class="topbar">
+  <div class="brand">MULTICLOUD <span>PLATFORM</span></div>
+
+  <nav class="topnav">
+    <button class="active" onclick="openCloud('dashboard',this)">Dashboard</button>
+    <button onclick="openCloud('aws',this)">AWS</button>
+    <button onclick="openCloud('azure',this)">Azure</button>
+    <button onclick="openCloud('gcp',this)">Google Cloud</button>
+    <button onclick="openCloud('oci',this)">Oracle Cloud</button>
+  </nav>
+
+  <div class="status">● LAB ONLINE</div>
+</header>
+
+<div class="layout">
+
+<aside class="sidebar" id="sidebar"></aside>
+
+<main>
+
+<section id="dashboard">
+  <div class="breadcrumb">Multicloud Platform / Overview</div>
+  <h1>Platform Overview</h1>
+  <div class="subtitle">Local multicloud engineering environment powered by OpenTofu and Floci.</div>
+
+  <div class="cards">
+    <div class="card"><div class="muted">Cloud providers</div><div class="value">4</div><div>AWS · Azure · GCP · OCI</div></div>
+    <div class="card"><div class="muted">Emulators</div><div class="value ok">4 / 4</div><div>Local control planes</div></div>
+    <div class="card"><div class="muted">Infrastructure as Code</div><div class="value">OpenTofu</div><div>Reproducible infrastructure</div></div>
+    <div class="card"><div class="muted">Cloud cost</div><div class="value ok">€0</div><div>Local emulation</div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">Provider Control Plane</div>
+    <div class="section-body">
+      <table>
+        <thead><tr><th>Provider</th><th>Runtime</th><th>Endpoint</th><th>IaC</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Amazon Web Services</td><td>Floci AWS</td><td>:4566</td><td>OpenTofu</td><td class="ok">● Healthy</td></tr>
+          <tr><td>Microsoft Azure</td><td>Floci Azure</td><td>:4577 HTTPS</td><td>OpenTofu</td><td class="ok">● Healthy</td></tr>
+          <tr><td>Google Cloud</td><td>Floci GCP</td><td>:4588</td><td>OpenTofu</td><td class="ok">● Healthy</td></tr>
+          <tr><td>Oracle Cloud</td><td>Floci OCI</td><td>:4599</td><td>OpenTofu</td><td class="ok">● Healthy</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">Cloud Capability Map</div>
+    <div class="section-body">
+      <table>
+        <thead><tr><th>Capability</th><th>AWS</th><th>Azure</th><th>GCP</th><th>OCI</th></tr></thead>
+        <tbody>
+          <tr><td>Compute</td><td>EC2</td><td>Virtual Machines</td><td>Compute Engine</td><td>Compute</td></tr>
+          <tr><td>Network</td><td>VPC</td><td>Virtual Network</td><td>VPC Network</td><td>VCN</td></tr>
+          <tr><td>Kubernetes</td><td>EKS</td><td>AKS</td><td>GKE</td><td>OKE</td></tr>
+          <tr><td>Registry</td><td>ECR</td><td>ACR</td><td>Artifact Registry</td><td>OCIR</td></tr>
+          <tr><td>Identity</td><td>IAM</td><td>Entra / RBAC</td><td>Cloud IAM</td><td>OCI IAM</td></tr>
+          <tr><td>Secrets</td><td>Secrets Manager</td><td>Key Vault</td><td>Secret Manager</td><td>Vault</td></tr>
+          <tr><td>Object Storage</td><td>S3</td><td>Blob Storage</td><td>Cloud Storage</td><td>Object Storage</td></tr>
+          <tr><td>Observability</td><td>CloudWatch</td><td>Azure Monitor</td><td>Cloud Monitoring</td><td>Monitoring</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="cloud" class="hidden">
+  <div id="cloudHero" class="cloud-hero">
+    <div class="breadcrumb" id="breadcrumb"></div>
+    <h1 id="cloudTitle"></h1>
+    <div class="muted" id="cloudDescription"></div>
+  </div>
+
+  <div class="toolbar">
+    <button class="btn primary" onclick="showBuilder()">＋ Create resource</button>
+    <button class="btn">Refresh</button>
+    <button class="btn">OpenTofu State</button>
+    <button class="btn">Deployments</button>
+  </div>
+
+  <div id="services" class="services"></div>
+</section>
+
+<section id="builder" class="hidden">
+  <div class="breadcrumb" id="builderBreadcrumb"></div>
+  <h1 id="builderTitle">Create resource</h1>
+  <div class="subtitle">Configure infrastructure using provider-native concepts.</div>
+
+  <div class="builder">
+    <div class="section">
+      <div class="section-head">
+        <span id="formSectionTitle">Configuration</span>
+        <span class="muted" id="formProviderHint"></span>
+      </div>
+      <div class="section-body">
+        <div id="resourceForm" class="form-grid"></div>
+      </div>
+    </div>
+
+    <div class="summary">
+      <h3>Deployment</h3>
+      <p><span class="muted">Provider</span><br><strong id="summaryProvider"></strong></p>
+      <p><span class="muted">Resource</span><br><strong id="summaryResource"></strong></p>
+      <p>
+        <span class="muted">Execution target</span><br>
+        <strong>Floci Local Emulator</strong>
+      </p>
+
+      <p>
+        <span class="muted">Actual lab cost</span><br>
+        <strong class="ok">€0</strong>
+      </p>
+
+      <hr style="border:0;border-top:1px solid #30363d;margin:18px 0">
+
+      <h3 style="margin-bottom:12px">Real-cloud estimate</h3>
+
+      <p>
+        <span class="muted">Region</span><br>
+        <strong id="costRegion">—</strong>
+      </p>
+
+      <p>
+        <span class="muted">Pricing model</span><br>
+        <strong id="costModel">On-demand</strong>
+      </p>
+
+      <p>
+        <span class="muted">Estimated hourly</span><br>
+        <strong id="costHourly">—</strong>
+      </p>
+
+      <p>
+        <span class="muted">Estimated monthly</span><br>
+        <strong id="costMonthly">—</strong>
+      </p>
+
+      <p>
+        <span class="muted">Monthly assumption</span><br>
+        <strong>730 hours</strong>
+      </p>
+
+      <p>
+        <span class="muted">Price catalog</span><br>
+        <strong id="costCatalog">Pending price catalog</strong>
+      </p>
+
+      <p class="muted" id="costNote" style="font-size:12px;line-height:1.5">
+        Estimate only. Taxes, discounts, commitments, traffic and
+        provider-specific charges may not be included.
+      </p>
+
+      <button class="btn primary" style="width:100%;margin-top:8px"
+        onclick="generatePreview()">Review + Generate</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">Infrastructure workflow</div>
+    <div class="section-body">
+      <div class="code" id="tofuPreview">Select a resource to generate its OpenTofu configuration preview.</div>
+    </div>
+  </div>
+</section>
+
+</main>
+</div>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+
+</body>
+</html>

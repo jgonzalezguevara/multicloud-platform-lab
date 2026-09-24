@@ -1,0 +1,42 @@
+---
+- name: Configure Harbor CA trust on RKE2 nodes
+  hosts: rke2_cluster
+  become: true
+  gather_facts: false
+
+  vars:
+    harbor_ca_source: /usr/local/share/ca-certificates/multicloud-lab-ca.crt
+    harbor_ca_destination: /usr/local/share/ca-certificates/multicloud-lab-ca.crt
+
+  tasks:
+    - name: Install Harbor public CA
+      ansible.builtin.copy:
+        src: "{{ harbor_ca_source }}"
+        dest: "{{ harbor_ca_destination }}"
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Update CA certificates
+
+    - name: Flush CA handler
+      ansible.builtin.meta: flush_handlers
+
+    - name: Verify Harbor TLS
+      ansible.builtin.uri:
+        url: https://10.20.0.30/api/v2.0/ping
+        method: GET
+        validate_certs: true
+        status_code: 200
+      register: harbor_tls
+      when: not ansible_check_mode
+
+    - name: Report Harbor TLS status
+      ansible.builtin.debug:
+        msg: "Harbor TLS validated on {{ inventory_hostname }}: HTTP {{ harbor_tls.status }}"
+      when: not ansible_check_mode
+
+  handlers:
+    - name: Update CA certificates
+      ansible.builtin.command:
+        cmd: update-ca-certificates
+      changed_when: true

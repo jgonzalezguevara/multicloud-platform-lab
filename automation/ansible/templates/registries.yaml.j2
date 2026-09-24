@@ -1,0 +1,13 @@
+---
+mirrors:
+  "10.20.0.30":
+    endpoint:
+      - "https://10.20.0.30"
+
+configs:
+  "10.20.0.30":
+    auth:
+      username: "{{ vault_harbor_username }}"
+      password: "{{ vault_harbor_password }}"
+    tls:
+      ca_file: "/usr/local/share/ca-certificates/multicloud-lab-ca.crt"
