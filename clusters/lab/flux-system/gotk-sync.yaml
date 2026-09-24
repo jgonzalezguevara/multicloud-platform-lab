@@ -1,0 +1,26 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: multicloud-platform-lab
+  namespace: flux-system
+spec:
+  interval: 1m
+  ref:
+    branch: main
+  url: https://github.com/jgonzalezguevara/multicloud-platform-lab.git
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: platform-demo
+  namespace: flux-system
+spec:
+  interval: 1m
+  retryInterval: 30s
+  timeout: 2m
+  prune: true
+  wait: true
+  sourceRef:
+    kind: GitRepository
+    name: multicloud-platform-lab
+  path: ./applications/platform-demo/k8s
