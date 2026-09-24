@@ -1,0 +1,64 @@
+name: Platform CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  static-validation:
+    name: Static validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: 1.12.6
+
+      - name: Validate Bash syntax
+        shell: bash
+        run: |
+          find scripts -type f -name '*.sh' -print0 |
+          while IFS= read -r -d '' script; do
+            echo "Checking ${script}"
+            bash -n "${script}"
+          done
+
+      - name: Check OpenTofu formatting
+        shell: bash
+        run: |
+          tofu fmt -check -recursive platforms
+
+      - name: Render application Kustomize manifests
+        shell: bash
+        run: |
+          kubectl kustomize applications/platform-demo/k8s \
+            >/tmp/platform-demo.yaml
+
+          test -s /tmp/platform-demo.yaml
+
+      - name: Render Flux manifests
+        shell: bash
+        run: |
+          kubectl kustomize clusters/lab/flux-system \
+            >/tmp/flux-system.yaml
+
+          test -s /tmp/flux-system.yaml
+
+      - name: Validate Python syntax
+        shell: bash
+        run: |
+          python -m py_compile applications/platform-demo/app.py
+
+      - name: Check repository for whitespace errors
+        shell: bash
+        run: |
+          git diff --check HEAD^ HEAD
