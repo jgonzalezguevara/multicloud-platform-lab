@@ -39,6 +39,18 @@ jobs:
         run: |
           tofu fmt -check -recursive platforms
 
+      - name: Initialize and validate AWS OpenTofu
+        shell: bash
+        run: |
+          tofu -chdir=platforms/aws init -backend=false -input=false
+          tofu -chdir=platforms/aws validate
+
+      - name: Initialize and validate Proxmox OpenTofu
+        shell: bash
+        run: |
+          tofu -chdir=platforms/proxmox init -backend=false -input=false
+          tofu -chdir=platforms/proxmox validate
+
       - name: Render application Kustomize manifests
         shell: bash
         run: |
