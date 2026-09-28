@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fleet-demo
+  namespace: fleet-demo
+  labels:
+    app: fleet-demo
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: fleet-demo
+  template:
+    metadata:
+      labels:
+        app: fleet-demo
+    spec:
+      containers:
+        - name: nginx
+          image: 10.20.0.30/multicloud-platform/fleet-demo:0.1.0
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi

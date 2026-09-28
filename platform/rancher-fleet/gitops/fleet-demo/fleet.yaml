@@ -1,0 +1,7 @@
+defaultNamespace: fleet-demo
+
+targets:
+  - name: local-rke2
+    clusterSelector:
+      matchLabels:
+        management.cattle.io/cluster-display-name: local

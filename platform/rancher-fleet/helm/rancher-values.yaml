@@ -1,0 +1,19 @@
+hostname: rancher.multicloud.lab
+
+replicas: 1
+
+ingress:
+  enabled: true
+  ingressClassName: traefik
+
+tls: rancher
+
+bootstrapPassword: ""
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: 1000m
+    memory: 1536Mi
