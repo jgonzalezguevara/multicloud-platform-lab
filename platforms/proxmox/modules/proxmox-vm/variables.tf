@@ -84,3 +84,17 @@ variable "dns_domain" {
   default     = null
   nullable    = true
 }
+
+variable "data_disk_size_gb" {
+  description = "Optional secondary data disk size in GiB"
+  type        = number
+  default     = null
+  nullable    = true
+}
+
+variable "data_disk_datastore_id" {
+  description = "Optional datastore for the secondary data disk; defaults to datastore_id"
+  type        = string
+  default     = null
+  nullable    = true
+}
