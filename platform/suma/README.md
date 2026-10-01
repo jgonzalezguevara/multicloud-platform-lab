@@ -1,12 +1,14 @@
-# SUSE Multi-Linux Manager
+# SUSE Multi-Linux Manager 5.2
 
-This directory contains the SUSE Multi-Linux Manager branch of the Multicloud Platform Engineering Lab.
+This directory contains the SUSE Multi-Linux Manager branch of the Multicloud
+Platform Engineering Lab.
 
 ## Role in the lab
 
-SUSE Multi-Linux Manager represents the Linux lifecycle management layer of the SUSE-oriented enterprise platform.
+SUSE Multi-Linux Manager provides the Linux lifecycle-management layer of the
+SUSE-oriented enterprise platform.
 
-The laboratory separates two different management domains:
+The laboratory separates two management domains:
 
     Kubernetes platform lifecycle
         RKE2
@@ -14,160 +16,227 @@ The laboratory separates two different management domains:
         Fleet
         Harbor
 
-    Linux operating system lifecycle
+    Linux operating-system lifecycle
         SUSE Multi-Linux Manager
 
-These domains are complementary and are not treated as competing products.
+These domains are complementary.
 
-## Laboratory objectives
+SUMA will later be compared with Red Hat Satellite using evidence gathered from
+the laboratory.
 
-The SUMA phase will evaluate and document:
+## Validated architecture
 
-- server architecture and sizing
-- repository and software content management
-- managed Linux system registration
-- lifecycle and staging concepts
-- package and patch management
-- system grouping
-- remote operations
-- configuration management
-- automation integration
-- reporting and operational visibility
-- Day-2 administration
-- backup and recovery considerations
-- reproducible deployment and teardown
-- resource consumption in the Proxmox laboratory
+The deployed server is:
 
-## Resource strategy
+    VMID:       130
+    Hostname:   suma01
+    FQDN:       suma01.multicloud.lab
+    IPv4:       10.20.0.31/24
+    Gateway:    10.20.0.1
 
-SUMA will not initially run permanently alongside every enterprise platform in the laboratory.
+Resources:
 
-The physical Proxmox host has limited RAM and already runs the reference RKE2/Rancher/Harbor environment.
+    CPU:        4 vCPU
+    RAM:        16 GiB
+    Root disk:  50 GiB
+    Data disk:  300 GiB
 
-The SUMA environment will therefore be designed as an on-demand and reproducible workload.
+The physical Proxmox host has approximately 30.7 GiB RAM.
 
-Infrastructure provisioning should use the existing platform automation model wherever practical:
+SUMA therefore operates as an on-demand workload and is not intended to run
+permanently alongside every heavyweight platform in the laboratory.
 
-    OpenTofu
-        -> Proxmox
-        -> Linux VM
-        -> automation
-        -> SUMA
-        -> managed Linux systems
+## Base image
 
-No deployment will be performed until sizing has been validated against the available laboratory resources.
+The deployment uses the official SUSE Multi-Linux Manager 5.2 appliance:
 
-## Comparative scope
+    SUSE-Multi-Linux-Manager-Server.x86_64-5.2.0-Qcow-GM.qcow2
 
-SUMA will later be compared with Red Hat Satellite in the Linux lifecycle management domain.
+Validated SHA256:
 
-The comparison will focus on observable laboratory characteristics such as:
+    91cc2bab6da2c7cc4a064bbacbc0ca6931ababc0f33b16554953929558e18149
 
-- architecture
-- content lifecycle
-- host registration
-- repository management
-- patch workflows
-- grouping and targeting
-- automation
-- Day-2 operations
-- resource consumption
-- reproducibility
+The vendor QCOW2 is treated as an immutable deployment artifact.
 
-The comparison will be based on actual laboratory evidence rather than product ranking.
+It is not patched and is not converted into a manually initialized template.
 
-## Current laboratory capacity
+The image itself is not stored in Git.
 
-The physical Proxmox host is a repurposed laptop with:
+## Infrastructure provisioning
 
-    14 logical CPUs
-    30.7 GiB RAM
-    349 GiB local-lvm storage
-    294 GiB local-lvm currently available
+The infrastructure path is:
 
-At the capacity snapshot, approximately 12.4 GiB of physical RAM remained available.
+    Git
+      -> OpenTofu
+      -> Proxmox
+      -> official MLM appliance
+      -> cloud-init / NoCloud
 
-RAM is therefore the primary constraint for the SUMA laboratory.
+OpenTofu declares the VM resources, disks, networking, DNS configuration and
+NoCloud initialization.
 
-An initial planning candidate of:
+The deployment uses the bpg/proxmox provider.
 
-    4 vCPU
-    16 GiB RAM
-    200 GiB disk
+The official appliance successfully detects:
 
-has been reserved for evaluation.
+    cloud-id: nocloud
+    datasource: DataSourceNoCloud
 
-This laboratory profile was derived from the current SUSE Multi-Linux Manager server requirements.
+No interactive JeOS firstboot configuration is required.
 
-The target design remains reproducible and on-demand.
+## cloud-init
 
-## Validated product requirements
+The custom user-data is stored in:
 
-The current SUSE Multi-Linux Manager 5.2 server requirements used for laboratory sizing are:
+    platform/suma/cloud-init/user-data.yaml
 
-    CPU
-        Minimum 4 dedicated 64-bit CPU cores
+It declares:
 
-    RAM
-        Minimum 16 GB
-        Recommended 32 GB
+- hostname
+- FQDN
+- automation user
+- passwordless sudo for the automation user
+- disabled SSH password authentication
+- disabled direct root login
+- timezone
 
-    Root filesystem
-        40 GB
+The SSH public key is injected by OpenTofu at deployment time and is not stored
+directly in the template.
 
-    Container volumes
-        Minimum 150 GB
-        Capacity depends on synchronized products and repositories
+Network configuration is supplied through the Proxmox initialization
+configuration rather than being coupled to a guest interface name.
 
-    PostgreSQL volume
-        Minimum 50 GB
+## Persistent storage
 
-    Swap
-        Recommended 8 to 12 GB
+MLM container storage uses the dedicated second disk:
 
-Supported container-host operating systems include:
+    Device:      /dev/sdb
+    Size:        300 GiB
+    Filesystem:  XFS
+    Mountpoint:  /var/lib/containers/storage/volumes
 
-    SL Micro 6.2
-    SUSE Linux Enterprise Server 15 SP7
+The disk was initialized using the vendor-supported utility:
 
-The physical Proxmox lab currently has approximately 12.4 GiB of free RAM while the existing enterprise Kubernetes environment is running.
+    sudo /usr/bin/mgr-storage-server /dev/sdb
 
-Therefore a standards-aligned SUMA server cannot safely be added while preserving the complete current environment unchanged.
+The mount is persistent through a UUID-based /etc/fstab entry.
 
-The SUMA server will use an on-demand lifecycle.
+At final validation approximately 294 GiB remained available.
 
-Initial laboratory VM profile:
+The disk must not be reformatted during normal lifecycle operations.
 
-    4 vCPU
-    16 GiB RAM
-    200 GiB disk
+## MLM installation
 
-Before starting SUMA, sufficient physical memory must be released by stopping laboratory workloads that are not required for the SUMA validation phase.
+The validated administration tooling is:
 
-The existing RKE2/Rancher/Fleet/Harbor environment remains reproducible and will not be destroyed merely to create SUMA.
+    mgradm 5.2.16 for 5.2.0 image
+    mgrctl 5.2.16
 
-## Official VM image acquisition
+The application was installed using the supported mgradm workflow.
 
-SUSE Multi-Linux Manager 5.2 Server VM images are distributed through the official SUSE download infrastructure.
+Installation pattern:
 
-The public download page exposes the product and architecture selection, but current installer images require authentication through SUSE Customer Center.
+    sudo mgradm install suma01.multicloud.lab \
+      --config /root/.config/uyuni-tools/config.yaml \
+      --pullPolicy Never
 
-Laboratory target image:
+The runtime configuration is private and must never be committed to Git.
 
-    Product: SUSE Multi-Linux Manager 5.2 Server
-    Base OS: SL Micro 6.2
-    Architecture: x86_64 / AMD64
-    Format: qcow2
+It contains deployment credentials and other sensitive configuration.
 
-The downloaded artifact and its published checksum must be validated before it is imported into Proxmox.
+## Validated functional state
 
-The image itself must never be committed to this repository.
+Final functional validation confirmed:
 
-Planned Proxmox template:
+    uyuni-db       healthy
+    uyuni-server   healthy
 
-    Name: suma52-slmicro62-template
-    VMID: 9130
-    Storage: local-lvm
-    Network bridge: vmbr1
+Core MLM services are active, including:
 
-The template VMID is intentionally separate from workload VMID 130.
+- Tomcat
+- Salt Master
+- Salt API
+- Apache
+- Taskomatic
+- Spacewalk target
+
+HTTPS responds successfully on the server.
+
+The presented certificate identifies:
+
+    suma01.multicloud.lab
+
+The laboratory uses a locally generated CA.
+
+Testing with curl -k validates HTTPS functionality but deliberately bypasses
+client CA verification. Certificate trust must therefore be treated separately
+from HTTPS availability.
+
+## Reproducibility model
+
+The current SUMA environment deliberately separates declarative infrastructure
+from application bootstrap.
+
+Declarative/reproducible:
+
+- official image identity and checksum
+- Proxmox VM
+- CPU and RAM
+- root and data disks
+- network identity
+- cloud-init / NoCloud
+- automation account
+- SSH public-key injection
+
+Documented deterministic bootstrap:
+
+- storage initialization with mgr-storage-server
+- private runtime configuration creation
+- mgradm application installation
+- functional validation
+
+The environment is therefore described as:
+
+    declarative infrastructure with documented, deterministic application bootstrap
+
+It is not currently described as fully zero-touch application deployment.
+
+See:
+
+    platform/suma/DEPLOYMENT-CONTRACT.md
+
+for the exact reproducibility boundary.
+
+## Runtime strategy
+
+The heavyweight enterprise platforms in this laboratory are operated on demand.
+
+When SUMA is active, RKE2 and Harbor may remain stopped to preserve physical
+memory.
+
+The OpenTofu variable:
+
+    rke2_started
+
+is used to keep the declared RKE2 runtime state aligned with the intended lab
+state.
+
+Heavy workloads must not be started automatically without first checking
+available host resources.
+
+## Next lifecycle work
+
+With the SUMA deployment and functional validation complete, remaining closure
+work is:
+
+1. validate repository formatting and OpenTofu configuration
+2. inspect the final OpenTofu plan
+3. scan pending changes for accidental secrets
+4. commit the completed SUMA phase
+5. stop SUMA cleanly when its validation work is finished
+6. release resources for the OpenShift design phase
+
+The next enterprise platform phase is OpenShift.
+
+OpenShift sizing and topology must be designed from current official Red Hat
+requirements before infrastructure is created.

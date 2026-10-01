@@ -1,0 +1,31 @@
+#cloud-config
+
+hostname: suma01
+fqdn: suma01.multicloud.lab
+manage_etc_hosts: true
+preserve_hostname: false
+
+users:
+  - default
+  - name: automation
+    gecos: Multicloud Platform Automation
+    groups:
+      - wheel
+    shell: /bin/bash
+    sudo:
+      - ALL=(ALL) NOPASSWD:ALL
+    lock_passwd: true
+
+ssh_pwauth: false
+disable_root: true
+
+timezone: Europe/Madrid
+
+write_files:
+  - path: /etc/sudoers.d/90-automation
+    owner: root:root
+    permissions: "0440"
+    content: |
+      automation ALL=(ALL) NOPASSWD:ALL
+
+final_message: "SUMA host bootstrap completed"

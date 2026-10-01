@@ -61,7 +61,7 @@ module "rke2_nodes" {
 
   dns_domain = "local"
 
-  started = true
+  started = var.rke2_started
 }
 
 output "rke2_nodes" {

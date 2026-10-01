@@ -1,0 +1,26 @@
+# SUSE Multi-Linux Manager 5.2 mgradm configuration example
+#
+# This file documents the role of the private runtime configuration.
+# It intentionally contains no credentials or deployable secret values.
+#
+# The real configuration is stored on the SUMA server at:
+#
+#   /root/.config/uyuni-tools/config.yaml
+#
+# Required security properties:
+#
+#   owner: root
+#   group: root
+#   mode: 0600
+#
+# The runtime configuration contains values such as:
+#
+#   - SUSE Customer Center credentials
+#   - MLM administrator credentials
+#   - organization configuration
+#   - SSL configuration
+#
+# Exact keys must follow the schema supported by the installed mgradm version.
+#
+# Never commit the runtime configuration, passwords, tokens, private keys,
+# SCC credentials, or generated secret material to Git.
